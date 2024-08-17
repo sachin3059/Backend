@@ -18,22 +18,27 @@ const registerUser = asyncHandler( async(req, res) => {
 
 
 
-    const {username, email, fullname, password} =  req.body;
-    console.log("email: ", email);
+    const {username, email, fullName, password} =  req.body;
+    //console.log("email: ", email);
 
     if(
-        [fullname, email, username, password].some( (field) => field?.trim() === "")){
+        [fullName, email, username, password].some( (field) => field?.trim() === "")){
             throw new ApiError(400, "All fields are mandetory");
     }
 
 
-    const existedUser = User.findOne({ email })
+    const existedUser = await User.findOne({ email })
     if(existedUser){
         throw new ApiError(409, "user with this email is already exist");
     }
 
     const avatarLocalPath = req.files?.avatar[0]?.path;
-    const coverImageLocalPath = req.files?.coverImage[0]?.path;
+    //const coverImageLocalPath = req.files?.coverImage[0]?.path;
+
+    let coverImageLocalPath;
+    if(req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0){
+        coverImageLocalPath = req.files[0]?.path
+    }
 
 
     if(!avatarLocalPath){
@@ -54,7 +59,7 @@ const registerUser = asyncHandler( async(req, res) => {
     // entry in database
 
     const user = await User.create({
-        fullname,
+        fullName,
         avatar: avatar.url,
         coverImage: coverImage?.url || "",
         password,
